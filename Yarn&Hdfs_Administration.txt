@@ -1,0 +1,377 @@
+﻿wget https://s3-us-west-2.amazonaws.com/pipelinekondhwa/DataSet.txt
+
+hadoop fs -cp s3n://pipelinekondhwa/DataSet.txt /user/ubuntu/dataset
+hadoop fs -cp dataset s3n://jingamastee/
+nano /usr/local/hadoop/etc/hadoop/core-site.xml
+<property>
+<name>fs.s3n.awsAccessKeyId</name>
+<value>YOURAWSACCESSKEYID</value>
+</property>
+<property>
+<name>fs.s3n.awsSecretAccessKey</name>
+<value>YOURAWSACCESSSECRETKEY</value>
+</property>
+cd /usr/local/hadoop/share/hadoop/tools/lib/
+ls aws* azure*
+export HADOOP_CLASSPATH=$HADOOP_CLASSPATH:$HADOOP_HOME/share/hadoop/tools/lib/*
+echo $HADOOP_CLASSPATH
+
+-----------------------------------------------------------------------------------------
+https://streamsets.com/documentation/datacollector/latest/help/#Install_Config/CMInstall-
+Overview.html#concept_nb5_c3m_25
+sudo yum install wget -y
+wget https://archives.streamsets.com/datacollector/2.5.1.1/rpm/streamsets-datacollector-2.5.1.1-all-rpms.tgz
+
+tar -xzvf streamsets-datacollector-2.5.1.1-all-rpms.tgz
+cd streamsets-datacollector-2.5.1.1-all-rpms
+sudo yum localinstall streamsets*.rpm
+sudo -i
+service sdc start
+ulimit -n 32768
+http://34.204.13.74:18630/ 
+*****************************************
+only if your doing it with tar ball
+./streamsets-datacollector-2.4.0.0/bin/streamsets stagelibs -list
+sudo mkdir /etc/init.d/sdc
+sudo groupadd sdc
+sudo useradd -g sdc sdc
+sudo nano /etc/security/limits.conf
+ubuntu soft nofile 4096
+______________________________________________________________________________________________
+
+hadoop distcp hdfs://ip-10-0-0-189.ec2.internal:9001/user/ubuntu/data hdfs://ip-10-0-0-207.ec2.internal:9000/user/ubuntu/mahesh
+
+hadoop distcp-Dfs.s3a.access.key=AKIAIXGMERR74SC5ZW3A -Dfs.s3a.secret.key=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 hdfs://ip-172-31-39-64.us-west-
+2.compute.internal:9000/user/ubuntu//StreamSetDataColloctor hdfs://ip-172-31-16-56.us-west-2.compute.internal:9000/user/ubuntu/
+
+hadoop distcp -Dfs.s3a.access.key=AKIAIXGMERR74SC5ZW3A -Dfs.s3a.secret.key=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 s3a://pipelinekondhwa/StreamSetDataColloctor hdfs://nn:9000/user/ubuntu/BigData.tsv
+
+----------------------------------------------------------------------------------------------------------------------------
+
+• system file checker
+
+hdfs fsck /user/ubuntu/DataSet.txt -files
+hdfs fsck / -locations -blocks -files
+hdfs fsck DataSet.txt -locations -blocks -files
+hdfs fsck -list-corruptfileblocks
+hdfs dfs -rm /user/ubuntu/DataSet.txt (example that this is a corrupt)
+hdfs fsck / -delete
+hadoop fsck / > /home/ubuntu/
+___________________________________________________________________________
+
+• Trash configuration
+nano core-site.xml
+
+<property>
+<name>fs.trash.interval</name>
+<value>30</value>
+<description>Number of minutes between trash checkpoints. If zero, the trash feature is
+disabled</description>
+</property><property>
+<name>fs.trash.checkpoint.interval</name>
+<value>15</value>
+</property>
+hadoop fs -expunge
+
+---------- remove file from trash
+This command causes the NameNode to permanently delete files from the trash that are older than the threshold, instead of waiting for the next emptier window. It immediately removes expired checkpoints from the file system.
+For a production environment, it is recommended that you enable trash to avoid unexpected removal operations. Enabling trash provides a chance to recover data from operational or user errors. But it is also important to set appropriate values for fs.trash.interval and fs.trash.checkpoint.interval to make trash work the way you expect it to work. For example, if you need to frequently upload and delete files from the HDFS, you probably want to set fs.trash.interval to a smaller value, otherwise the checkpoints would take up too much space.
+
+Keep in mind that when trash is enabled and you remove some files, HDFS capacity does not increase because files are not truly deleted. The HDFS does not reclaim the space unless the files are removed from the trash, which occurs only after checkpoints are expired. Sometimes you might want to temporarily disable trash when deleting files; in this case, you can run the rm command with the -skipTrash option. 
+____________________________________________
+_________________________________
+nano hdfs-site.xml
+
+Block Size
+<property>
+<name>dfs.block.size</name>
+<value>524288</value>
+</property>
+<property>
+<name>dfs.block.size</name>
+<value>134217728</value>
+</property>
+
+hadoop fs -rm -r /user/ubuntu/*
+
+hadoop fs -D dfs.blocksize=268435456 -cp /user/ubuntu/DataSet.txt /user/ubuntu/DataSet
+------------------------------------------------------------------
+
+Setting Replication for a dataset
+
+hdfs dfs -setrep 4 purchases.csv     Replicate
+hdfs dfs -setrep -w 4 purchases.csv  Write Now
+hdfs dfs -setrep -R 4 purchases.csv  Recursive
+------------------------------------------------------
+Hadoop Archivals
+
+hadoop archive -archiveName positive.har -p /user/ubuntu/DataSet /user/ubuntu/
+hadoop fs -ls
+hadoop fs -lsr positive.har
+hadoop fs -cat positive.har/part-0
+hadoop fs -ls -R har:///user/ubuntu/positive.har/
+hdfs dfs -cat har:///user/ubuntu/positive.har
+
+hadoop version
+
+hadoop fs -ls / ---------to check hadoop root
+hadoop fs -du -h hdfs:/ -------------disk usage
+hadoop fs -count -h -q hdfs:/ --------- file count
+hadoop fs -df -h hdfs:/ --
+hdfs dfsadmin -report -live
+hdfs dfsadmin -report
+hdfs dfsadmin -printTopology
+
+------------------------------------------------------
+hdfs balancer -threshold 1
+
+This specifies that each DataNode's disk usage must be within 5% of the cluster's overall usage.
+
+hdfs mover
+
+A new data migration tool is added for archiving data. The tool is similar to Balancer. It periodically scans
+the files in HDFS to check if the block placement satisfies the storage policy. For the blocks violating the
+storage policy, it moves the replicas to a different storage type in order to fulfill the storage policy requirement.
+
+hdfs storagepolicies -listPolicies
+dfs.datanode.failed.volumes.tolerated
+
+cd /usr/local/hadoop/data/hdfs/namenode/current
+cat seen_txid 
+hdfs dfsadmin -rollEdits
+
+
+
+hadoop dfsadmin -safemode enter
+hdfs dfsadmin -saveNamespace 
+Save current namespace into storage directories and reset edits log
+
+hdfs dfsadmin -fetchImage /home/ubuntu/hadoopbackup.2017
+
+
+Adding users in ubuntu
+sudo adduser dfs1
+sudo adduser dfs1 sudo
+hadoop fs -mkdir /user/dfs
+hadoop fs -chown dfs:supergroup /user/dfs
+su dfs
+cp /home/ubuntu/.bashrc ~/
+bash
+
+Setting permissions
+
+hadoop fs -chmod 600 /user/dfs
+hadoop fs -ls -R
+
+set Quota
+
+hadoop fs -mkdir /user/ubuntu/testQuota
+hadoop dfsadmin -setQuota 3 /user/ubuntu/testQuota
+hadoop fs -mkdir /user/ubuntu/testQuota/1
+hadoop fs -mkdir /user/ubuntu/testQuota/2
+hadoop fs -mkdir /user/ubuntu/testQuota/3
+hadoop fs -count -q /user/ubuntu/testQuota
+hadoop dfsadmin -clrQuota /user/ubuntu/testQuota
+hadoop dfsadmin -setSpaceQuota 5M /user/ubuntu/testQuota
+hadoop fs -cp hadoop-2.7.2.tar.gz /user/ubuntu/testQuota
+hadoop fs -count -h -q /user/ubuntu/testQuota
+hadoop dfsadmin -clrSpaceQuota /user/ubuntu/testQuota
+======================================================================
+CREATE SNAPSHOTS
+hdfs dfs -mkdir /user/ubuntu/cloudage_data
+echo "This is my snapshot data at cloudage" | hdfs dfs -put - /user/ubuntu/cloudage_data/data.txt
+hdfs dfs -cat /user/ubuntu/cloudage_data/data.txt
+hdfs dfsadmin -allowSnapshot /user/ubuntu/cloudage_data
+hdfs dfs -createSnapshot /user/ubuntu/cloudage_data snapshot_folder
+hdfs dfs -rm -r -skipTrash /user/ubuntu/cloudage_data
+hdfs dfs -rm -r -skipTrash /user/ubuntu/cloudage_data/data.txt
+hdfs dfs -cat /user/ubuntu/cloudage_data/data.txt
+hdfs dfs -rm -r /user/ubuntu/cloudage_data/data.txt
+hdfs dfs -ls -R /user/ubuntu/cloudage_data/.snapshot
+hdfs dfs -cat /user/ubuntu/cloudage_data/.snapshot/snapshot_folder/data.txt
+hdfs dfs -cp /user/ubuntu/cloudage_data/.snapshot/snapshot_folder/data.txt /user/ubuntu/cloudage_data
+hdfs dfs -cat /user/ubuntu/cloudage_data/data.txt
+hdfs lsSnapshottableDir
+hdfs dfsadmin -disallowSnapshot /user/ubuntu/cloudage_data/
+hdfs dfs -deleteSnapshot /user/ubuntu/cloudage_data/ snapshot_folder
+hdfs dfs -renameSnapshot <path> <oldName> <newName>
+hdfs snapshotDiff /user/ubuntu/snapshot s20160820-000747.522 s20160820-000825.861
+hdfs snapshotDiff /user/ubuntu/cloudage_data snapshot_folder1 snapshot_folder2
+---------------------------------------------------------------------------------------------------------------
+Configure Backup Node
+
+<property>
+<name>dfs.namenode.backup.address</name>
+<value>newnode:50100</value>
+<description>
+The backup node server address and port.
+If the port is 0 then the server will start on a free port.
+</description>
+</property>
+
+hdfs dfsadmin -refreshNodes
+hdfs getconf -backupNodes
+hdfs namenode -backup
+hdfs namenode -checkpoint
+-------------------------------------------------------------------------------------------------------------------------------------
+If no yarn.include file is specified, all NodeManagers are considered to be included in the cluster (unless
+excluded in
+the yarn.exclude file). The yarn.resourcemanager.nodes.include-path and
+yarn.resourcemanager.nodes.exclude-path
+properties in yarn-site.xml are used to specify the yarn.include and yarn.exclude files.If no dfs.include file
+is specified, all DataNodes are considered to be included in the cluster (unless excluded in the
+dfs.exclude file). The dfs.hosts and dfs.hosts.exlude properties in hdfs-site.xml are used to specify the
+dfs.include
+and dfs.exclude files.
+-----------------------------------------------------------------------------------------------------------------------
+Decommisioning Node
+nano dfs.exclude
+nn
+hdfs-site.xml
+<property>
+<name>dfs.hosts.exclude</name>
+<value>/usr/local/hadoop/etc/hadoop/excludes</value>
+<final>true</final>
+</property>
+-----------------------------------------------------------------------------------------------------------------------------------
+yarn-site.xml
+<property>
+<name>mapred.hosts.exclude</name><value>/usr/local/hadoop/conf/excludes</value>
+<final>true</final>
+</property>
+hadoop dfsadmin -refreshNodes
+yarn rmadmin -refreshNodes
+hadoop dfsadmin -report
+_________________________________________________________________________________
+__________
+Commissioning Nodes
+
+nano dfs.include
+
+ip-172-31-30-159.eu-west-1.compute.intern
+update the Nodes in slaves file
+Remove the Nodes from exclude file
+hdfs-site.xml
+<property>
+<name>dfs.hosts</name>
+<value>/usr/local/hadoop/etc/hadoop/includes</value>
+<final>true</final>
+</property>
+mapred-site.xml
+<property>
+<name>mapred.hosts.include</name>
+<value>/usr/local/hadoop/etc/hadoop/includes</value>
+<final>true</final>
+</property>
+
+yarn rmadmin -refreshNodes
+hdfs balancer
+hadoop dfsadmin -report > report_aug
+hadoop dfsadmin -report
+
+
+
+-------------------------------------------------------------------------------------------------
+
+
+
+
+yarn Administration
+
+submit a hadoop inbuild application.
+
+hadoop jar /usr/lib/hadoop-mapreduce/hadoop-mapreduce-examples-2.2.0.2.0.6.0-76.jar pi 4 10000
+
+hadoop jar /usr/local/hadoop/share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.2.jar pi 4 10000
+
+yarn rmadmin -checkHealth
+
+yarn application -list
+
+yarn application -list -appStates ALL
+
+To get application ID use yarn application -list
+
+yarn application -status application_1459542433815_0002
+
+yarn logs -applicationId application_1459542433815_0002
+
+yarn application -kill application_1459542433815_0002
+
+http://192.168.0.5:19888/ Job History Server
+
+$HADOOP_HOME/sbin/mr-jobhistory-daemon.sh start historyserver
+
+Full List Of Yarn Configuration Properties 
+http://hadoop.apache.org/docs/current/hadoop-yarn/hadoop-yarn-common/yarn-default.xml
+
+Example
+
+Each machine in our cluster has 48 GB of RAM.
+Some of this RAM should be reserved for Operating System usage.
+On each node, we’ll assign 40 GB RAM for YARN to use and
+keep 8 GB for the Operating System.
+The following property sets the maximum memory YARN can utilize on the node:
+
+
+In yarn-site.xml   
+
+
+<name>yarn.nodemanager.resource.memory-mb</name>
+
+<value>40960</value>
+
+
+ <name>yarn.scheduler.minimum-allocation-mb</name>
+
+ <value>2048</value>
+
+ <name>yarn.nodemanager.vmem-pmem-ratio</name>
+
+ <value>2.1</value>
+
+ 
+In mapred-site.xml:
+
+
+
+ <name>mapreduce.map.java.opts</name>
+
+ <value>-Xmx3072m</value>
+
+ <name>mapreduce.reduce.java.opts</name>
+
+ <value>-Xmx6144m</value>
+
+
+
+<name>mapreduce.map.memory.mb</name>
+
+ <value>4096</value>
+
+ <name>mapreduce.reduce.memory.mb</name>
+
+ <value>8192</value>
+
+
+
+export HADOOP_OPTS="-Dmapreduce.map.memory.mb=2000 -Dmapreduce.map.java.opts=-Xmx1500m"
+
+export HADOOP_CLIENT_OPTS="-Dmapreduce.map.memory.mb=2000 -Dmapreduce.map.java.opts=-Xmx1500m"
+
+export YARN_OPTS="-Dmapreduce.map.memory.mb=2000 -Dmapreduce.map.java.opts=-Xmx1500m"
+
+export YARN_CLIENT_OPTS="-Dmapreduce.map.memory.mb=2000 -Dmapreduce.map.java.opts=-Xmx1500m"
+
+Thus, with the above settings on our example cluster, each Map task will get the following memory allocations with the following:
+
+    Total physical RAM allocated = 4 GB
+    JVM heap space upper limit within the Map task Container = 3 GB
+    Virtual memory upper limit = 4*2.1 = 8.2 GB
+
+configuration map task memory is 4GB (mapreduce.map.memory.mb = 4096 ) and reduce task physical memory is 8GB (mapreduce.reduce.memory.mb = 8192 ). Node Manager’s physical memory is 40GB and that’s the reason there will be a maximum of 10 mappers((40/4) and 5 reducers(40/8)
+http://docs.hortonworks.com/index.html
+https://hortonworks.com/blog/how-to-plan-and-configure-yarn-in-hdp-2-0/
+
+
+
